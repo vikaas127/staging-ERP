@@ -26,6 +26,17 @@
 </div>
 </div>
 <?php init_tail(); ?>
+
+
+
+
+
+
+
+
+
+
+
 <script>
 $(function() {
     validate_estimate_form();
@@ -35,6 +46,77 @@ $(function() {
     init_ajax_project_search_by_customer_id();
     // Maybe items ajax search
     init_ajax_search('items', '#item_select.ajax-search', undefined, admin_url + 'items/search');
+});
+</script>
+
+<script>
+let globalCustomerGroupDiscount = 0;
+
+jQuery(function($) {
+
+    // 1. Fetch customer group discount and store globally
+    $('#clientid').on('change', function() {
+        var customerId = $(this).val();
+        if (customerId) {
+            $.ajax({
+                url: admin_url + 'estimates/get_customer_group_info/' + customerId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $('#customer_group_name').text(data.group_name);
+                    $('#customer_group_discount').text(data.default_discount + '%');
+                    globalCustomerGroupDiscount = parseFloat(data.default_discount) || 0;
+                    $('#basic_discount_percent').val(globalCustomerGroupDiscount).trigger('input');
+                },
+                error: function() {
+                    $('#customer_group_name').text('—');
+                    $('#customer_group_discount').text('0%');
+                    globalCustomerGroupDiscount = 0;
+                }
+            });
+        } else {
+            $('#customer_group_name').text('—');
+            $('#customer_group_discount').text('0%');
+            globalCustomerGroupDiscount = 0;
+        }
+    });
+
+    // 2. Apply discount on every newly added item row
+    window.applyGroupDiscountToLastItemRow = function () {
+        if (!globalCustomerGroupDiscount || globalCustomerGroupDiscount <= 0) return;
+
+        const $lastItem = $('.estimate-items-table tbody tr.item').last();
+        if ($lastItem.length === 0) return;
+
+        const $rateInput = $lastItem.find('input[name*="[rate]"]');
+        if (!$rateInput.length) return;
+
+        const nameAttr = $rateInput.attr('name');
+        const discountInputName = nameAttr.replace('[rate]', '[discount_percent]');
+
+        // Avoid duplicate injection
+        if ($lastItem.find(`input[name="${discountInputName}"]`).length === 0) {
+            const $discountInput = $(`<input type="hidden" name="${discountInputName}" value="${globalCustomerGroupDiscount}">`);
+            $lastItem.append($discountInput);
+        }
+
+        if (typeof calculate_total !== 'undefined') {
+            calculate_total();
+        }
+    };
+
+    // 3. Hook into item add
+    const originalAddItemToTable = window.add_item_to_table;
+
+    window.add_item_to_table = function(itemid, merge_invoice, is_existing) {
+        originalAddItemToTable(itemid, merge_invoice, is_existing);
+        setTimeout(() => {
+            applyGroupDiscountToLastItemRow();
+        }, 100); // Delay to ensure row is rendered
+    };
+
+    // Trigger customer group fetch on load
+    $('#clientid').trigger('change');
 });
 </script>
 </body>

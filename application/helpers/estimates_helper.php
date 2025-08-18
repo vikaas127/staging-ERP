@@ -230,7 +230,12 @@ function format_estimate_number($id)
     $CI = &get_instance();
 
     if (! is_object($id)) {
-        $CI->db->select('date,number,prefix,number_format')->from(db_prefix() . 'estimates')->where('id', $id);
+        $CI->db->select('e.date, e.number, e.prefix, e.number_format, re.version')
+                ->from(db_prefix() . 'estimates e')
+                ->join(db_prefix() . 'estimate_revisions re', 're.estimate_id = e.id', 'left')
+                ->where('e.id', $id)
+                ->order_by('re.id', 'DESC')
+                ->limit(1);
         $estimate = $CI->db->get()->row();
     } else {
         $estimate = $id;
@@ -242,6 +247,10 @@ function format_estimate_number($id)
     }
 
     $number = sales_number_format($estimate->number, $estimate->number_format, $estimate->prefix, $estimate->date);
+
+    if (isset($estimate->version) && $estimate->version != null) {
+        $number .= ' (V-' . $estimate->version.')';
+    }
 
     return hooks()->apply_filters('format_estimate_number', $number, [
         'id'       => $id,

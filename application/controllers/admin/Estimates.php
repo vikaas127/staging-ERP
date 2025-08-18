@@ -17,7 +17,13 @@ class Estimates extends AdminController
     {
         $this->list_estimates($id);
     }
+public function get_customer_group_info($customer_id)
+    {
+        $this->load->model('clients_model'); // or your model where function is
+        $info = $this->clients_model->get_customer_group_discount($customer_id);
 
+        echo json_encode($info);
+    }
     /* List all estimates datatables */
     public function list_estimates($id = '')
     {
@@ -644,5 +650,18 @@ class Estimates extends AdminController
                 echo $duedate;
             }
         }
+    }
+
+    /* Get Revise History */
+    public function get_revise_history($estimate_id)
+    {
+        $this->load->model('estimates_model');
+        $data = $this->estimates_model->get_estimate_revise_history($estimate_id);
+
+        foreach ($data as &$row) {
+            $row['status_html'] = format_estimate_status($row['status'], 'mtop5 inline-block');
+        }
+
+        echo json_encode($data);
     }
 }
