@@ -1,0 +1,15 @@
+{
+    "name": "albia/ainlreports",
+    "autoload": {
+        "psr-4": {
+            "Albia\\Ainlreports\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Progas2000",
+            "email": "progas2000@hotmail.com"
+        }
+    ],
+    "require": {}
+}
