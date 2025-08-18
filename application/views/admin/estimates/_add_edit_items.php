@@ -404,3 +404,61 @@ if (file_exists($promo_view)) {
     </div>
     <div id="removed-items"></div>
 </div>
+<script>
+(function($) {
+    const originalCalculateTotal = window.calculate_total;
+
+    window.calculate_total = function() {
+        if (typeof originalCalculateTotal === 'function') {
+            originalCalculateTotal();
+        }
+
+        // --- Subtotal ---
+        const subtotalText = $('.subtotal').text().replace(/[₹,]/g, '') || '0';
+        const subtotal = parseFloat(subtotalText) || 0;
+
+        // --- 1. Basic Discount ---
+        const basicRate = parseFloat($('#basic_discount_percent').val()) || 0;
+        const basicType = $('#basic_discount_type').val();
+        let basicAmount = (basicType === 'percent') ? (subtotal * basicRate / 100) : basicRate;
+
+        // --- 2. Quantity Discount ---
+        const afterBasic = subtotal - basicAmount;
+        let qtyRate = 0;
+
+        if (afterBasic > 400000) qtyRate = 4;
+        else if (afterBasic > 300000) qtyRate = 3;
+        else if (afterBasic > 200000) qtyRate = 2;
+        else qtyRate = 0;
+
+        const qtyAmount = afterBasic * qtyRate / 100;
+        $('#quantity_discount_display').text(qtyRate + '%');
+
+        // --- 3. Special Discount ---
+        const specialRate = parseFloat($('#special_discount_percent').val()) || 0;
+        const specialAmount = (afterBasic - qtyAmount) * specialRate / 100;
+
+        // --- 4. Offer Discount ---
+        const offerRate = parseFloat($('#offer_discount_percent').val()) || 0;
+        const offerAmount = (afterBasic - qtyAmount) * offerRate / 100;
+
+        // --- Total Discount ---
+        const totalDiscount = basicAmount + qtyAmount + specialAmount + offerAmount;
+        $('.basic-discount-amount').text('-' + format_money(totalDiscount));
+
+        // --- Update Final Total ---
+        const totalText = $('.total').text().replace(/[₹,]/g, '') || '0';
+        let total = parseFloat(totalText) || 0;
+        total = total - totalDiscount;
+        $('.total').text(format_money(total));
+    };
+
+    // --- Trigger on change ---
+    $('#basic_discount_percent, #basic_discount_type, #special_discount_percent, #offer_discount_percent').on('input change', function () {
+        if (typeof calculate_total === 'function') {
+            calculate_total();
+        }
+    });
+
+})(jQuery);
+</script>
