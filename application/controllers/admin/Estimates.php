@@ -645,4 +645,17 @@ class Estimates extends AdminController
             }
         }
     }
+
+    /* Get Revise History */
+    public function get_revise_history($estimate_id)
+    {
+        $this->load->model('estimates_model');
+        $data = $this->estimates_model->get_estimate_revise_history($estimate_id);
+
+        foreach ($data as &$row) {
+            $row['status_html'] = format_estimate_status($row['status'], 'mtop5 inline-block');
+        }
+
+        echo json_encode($data);
+    }
 }

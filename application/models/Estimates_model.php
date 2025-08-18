@@ -518,7 +518,7 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
     {
         print_r($data, true);
         
-         log_message('info', 'New start data Es'. print_r($data, true));
+        log_message('info', 'New start data Es'. print_r($data, true));
         $data['datecreated'] = date('Y-m-d H:i:s');
 
         $data['addedfrom'] = get_staff_user_id();
@@ -579,6 +579,37 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             log_message('info', ' before Estimate created successfully with ID: ' . $insert_id);
         if ($insert_id) {
            log_message('info', 'Estimate created successfully with ID: ' . $insert_id);
+
+            // --- Add revision (Version 1) ---
+            $revisionData = array_merge($data, [
+                'estimate_id'   => $insert_id,
+                'created_at'    => date('Y-m-d H:i:s'),
+                'version'       => 1
+            ]);
+            $this->db->insert(db_prefix() . 'estimate_revisions', $revisionData);
+            $revision_id = $this->db->insert_id();
+            log_message('info', 'Revision (Version 1) added for Estimate ID: ' . $insert_id);
+            // ---------------------------------
+
+            // --- Insert revision items ---
+            if (!empty($items)) {
+                foreach ($items as $key => $item) {
+                    $revisionItem = [
+                        'revision_id'   => $revision_id,
+                        'description'   => $item['description'],
+                        'long_description' => isset($item['long_description']) ? $item['long_description'] : '',
+                        'qty'           => $item['qty'],
+                        'rate'          => $item['rate'],
+                        'unit'          => isset($item['unit']) ? $item['unit'] : '',
+                        'item_order'    => $key,
+                        // 'taxname'       => isset($item['taxname']) ? json_encode($item['taxname']) : null,   // need to confirm
+                    ];
+                    $this->db->insert(db_prefix() . 'estimate_revision_items', $revisionItem);
+                }
+                log_message('info', 'Revision items added for Revision ID: ' . $revision_id);
+            }
+            // ---------------------------------
+
             // Update next estimate number in settings
             $this->db->where('name', 'next_estimate_number');
             $this->db->set('value', 'value+1', false);
@@ -646,6 +677,7 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
      */
     public function update($data, $id)
     {
+
         $affectedRows = 0;
 
         $data['number'] = trim($data['number']);
@@ -843,6 +875,99 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
         }
 
         if ($affectedRows > 0) {
+
+            $this->db->where('id', $id);
+            $estimateRow    = $this->db->get(db_prefix() . 'estimates')->row_array();
+
+            // Find last revision for this estimate
+            $this->db->select('id, version');
+            $this->db->from(db_prefix() . 'estimate_revisions');
+            $this->db->where('estimate_id', $id);
+            $this->db->order_by('version', 'DESC');
+            $this->db->limit(1);
+            $lastVersionRow = $this->db->get()->row_array();
+
+            $revision_id = null;
+
+            if ($original_estimate->sent == 1) {
+
+                $this->db->where('id', $id);
+                $this->db->update(db_prefix() . 'estimates', ['sent' => 0, 'status' => 1]);    // need to check for status as well
+
+                // Sent → always insert new version
+                $newVersion = isset($lastVersionRow['version']) ? ($lastVersionRow['version'] + 1) : 1;
+
+                $revisionData = [
+                    'estimate_id'   => $id,
+                    'clientid'      => $estimateRow['clientid'],
+                    'date'          => _d(date('Y-m-d')),
+                    'subtotal'      => $estimateRow['subtotal'],
+                    'total'         => $estimateRow['total'],
+                    'total_tax'     => $estimateRow['total_tax'],
+                    'expirydate'    => $estimateRow['expirydate'],
+                    'prefix'        => $estimateRow['prefix'],
+                    'project_id'    => $estimateRow['project_id'],
+                    'number'        => $estimateRow['number'],
+                    'version'       => $newVersion,
+                    'reference_no'  => $estimateRow['reference_no'],
+                    'sent'          => 0, 
+                    'status'        => 1
+                ];
+                $this->db->insert(db_prefix() . 'estimate_revisions', $revisionData);
+                $revision_id = $this->db->insert_id();
+
+            } else {
+                // Not sent → update latest version
+                if ($lastVersionRow) {
+                    $revisionData = [
+                        'clientid'      => $estimateRow['clientid'],
+                        'date'          => _d(date('Y-m-d')),
+                        'subtotal'      => $estimateRow['subtotal'],
+                        'total'         => $estimateRow['total'],
+                        'total_tax'     => $estimateRow['total_tax'],
+                        'expirydate'    => $estimateRow['expirydate'],
+                        'prefix'        => $estimateRow['prefix'],
+                        'project_id'    => $estimateRow['project_id'],
+                        'number'        => $estimateRow['number'],
+                        'status'        => $estimateRow['status'],
+                        'sent'          => $estimateRow['sent'],
+                        'reference_no'  => $estimateRow['reference_no']
+                    ];
+                    $this->db->where('id', $lastVersionRow['id']);
+                    $this->db->update(db_prefix() . 'estimate_revisions', $revisionData);
+                    $revision_id = $lastVersionRow['id'];
+                }
+            }
+
+            // ===== Sync Revision Items + Taxes =====
+            if ($revision_id) {
+                // Remove old revision items
+                $this->db->where('revision_id', $revision_id);
+                $this->db->delete(db_prefix() . 'estimate_revision_items');
+
+                // Insert fresh items from current estimate
+                $estimateItems = $this->db->where('rel_id', $id)
+                                            ->where('rel_type', 'estimate')
+                                            ->order_by('item_order', 'ASC')
+                                            ->get(db_prefix() . 'itemable')
+                                            ->result_array();
+
+
+                foreach ($estimateItems as $item) {
+                    $revisionItem = [
+                        'revision_id'      => $revision_id,
+                        'description'      => $item['description'],
+                        'long_description' => $item['long_description'],
+                        'qty'              => $item['qty'],
+                        'rate'             => $item['rate'],
+                        'unit'             => $item['unit'],
+                        'item_order'       => $item['item_order'],
+                    ];
+                    $this->db->insert(db_prefix() . 'estimate_revision_items', $revisionItem);
+                }
+
+            }
+
             hooks()->do_action('after_estimate_updated', $id);
 
             return true;
@@ -853,15 +978,36 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
 
     public function mark_action_status($action, $id, $client = false)
     {
-        $this->db->where('id', $id);
-        $this->db->update(db_prefix() . 'estimates', [
+        $data = [
             'status' => $action,
-        ]);
+        ];
+
+        if ($action == 1) {
+            $data['sent'] = 0;
+        }
+
+        $this->db->where('id', $id);
+        $this->db->update(db_prefix() . 'estimates', $data);
 
         $notifiedUsers = [];
 
         if ($this->db->affected_rows() > 0) {
             $estimate = $this->get($id);
+
+            $this->db->select('id');
+            $this->db->where('estimate_id', $id);
+            $this->db->order_by('version', 'DESC');
+            $this->db->limit(1);
+            $latestRevision = $this->db->get(db_prefix() . 'estimate_revisions')->row();
+
+            if ($latestRevision) {
+                $this->db->where('id', $latestRevision->id);
+                $this->db->update(db_prefix() . 'estimate_revisions', [
+                    'status' => $estimate->status,
+                    'sent'  => $estimate->sent
+                ]);
+            }
+
             if ($client == true) {
                 $this->db->where('staffid', $estimate->addedfrom);
                 $this->db->or_where('staffid', $estimate->sale_agent);
@@ -953,6 +1099,20 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
                 if ($action == 2) {
                     $this->db->where('id', $id);
                     $this->db->update(db_prefix() . 'estimates', ['sent' => 1, 'datesend' => date('Y-m-d H:i:s')]);
+
+                    $this->db->select('id');
+                    $this->db->where('estimate_id', $id);
+                    $this->db->order_by('version', 'DESC');
+                    $this->db->limit(1);
+                    $latestRevision = $this->db->get(db_prefix() . 'estimate_revisions')->row();
+
+                    if ($latestRevision) {
+                        $this->db->where('id', $latestRevision->id);
+                        $this->db->update(db_prefix() . 'estimate_revisions', [
+                            'sent'      => 1,
+                            'datesend'  => date('Y-m-d H:i:s')
+                        ]);
+                    }
                 }
                 // Admin marked estimate
                 $this->log_estimate_activity($id, 'estimate_activity_marked', false, serialize([
@@ -1115,6 +1275,27 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             $this->db->where('fieldto', 'estimate');
             $this->db->delete(db_prefix() . 'customfieldsvalues');
 
+            // ------------------------------------------------------
+            // Delete Estimate Revisions and Revision Items
+            // ------------------------------------------------------
+            $this->db->select('id');
+            $this->db->where('estimate_id', $id);
+            $revisionIds = $this->db->get(db_prefix() . 'estimate_revisions')->result_array();
+
+            if (!empty($revisionIds)) {
+                foreach ($revisionIds as $rev) {
+                    // Delete revision items first
+                    $this->db->where('revision_id', $rev['id']);
+                    $this->db->delete(db_prefix() . 'estimate_revision_items');
+                }
+
+                // Now delete revisions
+                $this->db->where('estimate_id', $id);
+                $this->db->delete(db_prefix() . 'estimate_revisions');
+            }
+            // ------------------------------------------------------
+
+            
             $attachments = $this->get_attachments($id);
             foreach ($attachments as $attachment) {
                 $this->delete_attachment($attachment['id']);
@@ -1451,5 +1632,25 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
         }
 
         return $kanBan->get();
+    }
+
+    public function get_estimate_revise_history($estimate_id)
+    {
+        $this->db->select("
+                CONCAT(r.prefix, r.number, '-v', r.version) AS version_label,
+                r.total,
+                r.total_tax,
+                c.company AS customer,
+                r.project_id,
+                r.date,
+                r.expirydate,
+                r.status,
+                r.reference_no
+            ");
+        $this->db->from('tblestimate_revisions r');
+        $this->db->join('tblclients c', 'c.userid = r.clientid', 'left');
+        $this->db->where('r.estimate_id', $estimate_id);
+        $this->db->order_by('r.version', 'DESC');
+        return $this->db->get()->result_array();
     }
 }

@@ -63,7 +63,9 @@
             <tbody>
                 <tr class="main">
                     <td></td>
+                                        <td>
     <input type="hidden" name="item_id" value="">
+</td>
                     <td>
                         <textarea name="description" rows="4" class="form-control"
                             placeholder="<?php echo _l('item_description_placeholder'); ?>"></textarea>

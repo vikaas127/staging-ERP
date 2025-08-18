@@ -98,6 +98,15 @@
                         <div class="mtop10"></div>
                     </div>
                     <div class="pull-right _buttons">
+                        <!-- Start : Revise History Button -->
+                        <?php //if ($estimate->sent == 1) { ?>   <!-- need to ask -->
+                            <a href="javascript:void(0)" onclick="loadReviseHistory(<?= $estimate->id ?>)" class="btn btn-default btn-with-tooltip"
+                                data-toggle="tooltip" title="<?php echo _l('estimate_revise_history_tooltip'); ?>" data-placement="bottom"><i
+                                class="fa-regular fa-clock"></i></span>
+                            </a>
+                        <?php //} ?>
+                        <!-- End : Revise History Button -->
+
                         <?php if (staff_can('edit', 'estimates')) { ?>
                         <a href="<?php echo admin_url('estimates/estimate/' . $estimate->id); ?>"
                             class="btn btn-default btn-with-tooltip" data-toggle="tooltip"
@@ -630,3 +639,4 @@ schedule_estimate_send(<?php echo e($estimate->id); ?>);
 <?php } ?>
 </script>
 <?php $this->load->view('admin/estimates/estimate_send_to_client'); ?>
+<?php $this->load->view('admin/estimates/estimate_revise_history'); ?>
