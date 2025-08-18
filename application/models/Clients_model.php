@@ -51,7 +51,20 @@ class Clients_model extends App_Model
 
         return $this->db->get(db_prefix() . 'clients')->result_array();
     }
+public function get_customer_group_discount($customer_id)
+{
+    $this->db->select('g.name as group_name, g.default_discount, g.override_allowed');
+    $this->db->from(db_prefix().'customer_groups cg');
+    $this->db->join(db_prefix().'customers_groups g', 'cg.groupid = g.id');
+    $this->db->where('cg.customer_id', $customer_id);
+    $row = $this->db->get()->row();
 
+    return $row ?: (object)[
+        'group_name'       => 'No Group',
+        'default_discount' => 0,
+        'override_allowed' => 1
+    ];
+}
     /**
      * Get customers contacts
      * @param  mixed $customer_id

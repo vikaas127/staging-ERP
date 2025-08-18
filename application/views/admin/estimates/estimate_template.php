@@ -26,6 +26,10 @@
                  } ?>
                         </select>
                     </div>
+                    <div id="customer_group_info" class="tw-mt-2">
+    <p><strong>Group:</strong> <span id="customer_group_name">—</span></p>
+    <p><strong>Discount:</strong> <span id="customer_group_discount">0%</span></p>
+  </div>
                 </div>
                 <div class="form-group select-placeholder projects-wrapper<?php if ((!isset($estimate)) || (isset($estimate) && !customer_has_projects($estimate->clientid))) {
                      echo (isset($customer_id) && (!isset($project_id) || !$project_id)) ? ' hide' : '';
