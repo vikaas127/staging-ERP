@@ -239,6 +239,42 @@
                     </td>
                     <td class="discount-total"></td>
                 </tr>
+                <tr id="special_discount_area">
+  <td>
+    <div class="row">
+      <div class="col-md-7">
+        <span class="bold tw-text-neutral-700"><?php echo _l('special_discount'); ?></span>
+      </div>
+      <div class="col-md-5">
+        <select id="special_discount_percent" name="special_discount_percent" class="form-control">
+          <?php for ($i = 0; $i <= 5; $i++): ?>
+            <option value="<?= $i; ?>"><?= $i; ?>%</option>
+          <?php endfor; ?>
+        </select>
+      </div>
+    </div>
+  </td>
+  <td class="discount-total"></td>
+</tr>
+
+<tr id="offer_discount_area">
+  <td>
+    <div class="row">
+      <div class="col-md-7">
+        <span class="bold tw-text-neutral-700"><?php echo _l('offer_discount'); ?></span>
+      </div>
+      <div class="col-md-5">
+        <select id="offer_discount_percent" name="offer_discount_percent" class="form-control">
+          <?php for ($i = 0; $i <= 5; $i++): ?>
+            <option value="<?= $i; ?>"><?= $i; ?>%</option>
+          <?php endfor; ?>
+        </select>
+      </div>
+    </div>
+  </td>
+  <td class="discount-total"></td>
+</tr>
+
              <!--   <tr id="promo_code_area">
     <td colspan="2">
        <?php
