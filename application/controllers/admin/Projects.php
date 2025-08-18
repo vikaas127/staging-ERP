@@ -19,7 +19,7 @@ class Projects extends AdminController
     public function index()
     {
         close_setup_menu();
-        $data['statuses'] = $this->projects_model->get_project_statuses();
+      //  $data['statuses'] = $this->projects_model->project_statuses();
         $data['title']    = _l('projects');
         $data['table'] = App_table::find('projects');
         $this->load->view('admin/projects/manage', $data);
@@ -1103,45 +1103,7 @@ class Projects extends AdminController
         }
     }
 
-    /*public function get_rel_project_data($id, $task_id = '')
-    {
-        if ($this->input->is_ajax_request()) {
-            $selected_milestone = '';
-            $assigned           = '';
-            if ($task_id != '' && $task_id != 'undefined') {
-                $task               = $this->tasks_model->get($task_id);
-                $selected_milestone = $task->milestone;
-                $assigned           = array_map(function ($member) {
-                    return $member['assigneeid'];
-                }, $this->tasks_model->get_task_assignees($task_id));
-            }
-
-            $allow_to_view_tasks = 0;
-            $this->db->where('project_id', $id);
-            $this->db->where('name', 'view_tasks');
-            $project_settings = $this->db->get(db_prefix() . 'project_settings')->row();
-            if ($project_settings) {
-                $allow_to_view_tasks = $project_settings->value;
-            }
-
-            $deadline = get_project_deadline($id);
-
-            echo json_encode([
-                'deadline'            => $deadline,
-                'deadline_formatted'  => $deadline ? _d($deadline) : null,
-                'allow_to_view_tasks' => $allow_to_view_tasks,
-                'billing_type'        => get_project_billing_type($id),
-                'milestones'          => render_select('milestone', $this->projects_model->get_milestones($id), [
-                    'id',
-                    'name',
-                ], 'task_milestone', $selected_milestone),
-                'assignees' => render_select('assignees[]', $this->projects_model->get_project_members($id, true), [
-                    'staff_id', ['firstname', 'lastname'],
-                ], 'task_single_assignees', $assigned, ['multiple' => true], [], '', '', false),
-            ]);
-        }
-    }*/
-
+ 
     public function get_rel_project_data($id, $task_id = '')
     {
         if ($this->input->is_ajax_request()) {
@@ -1191,10 +1153,6 @@ class Projects extends AdminController
             ]);
         }
     }
-
-
-
-
 
     public function invoice_project($project_id)
     {
