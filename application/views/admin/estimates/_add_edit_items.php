@@ -191,6 +191,10 @@
                                 <div class="input-group" id="discount-total">
 
                                     <input type="number"
+                                        value=""
+                                        class="form-control pull-left input-discount-percent d-none" min="0" max="100" id="basic_discount_percent" name="basic_discount_percent">
+
+                                    <input type="number"
                                         value="<?php echo(isset($estimate) ? $estimate->discount_percent : 0); ?>"
                                         class="form-control pull-left input-discount-percent<?php if (isset($estimate) && !is_sale_discount($estimate, 'percent') && is_sale_discount_applied($estimate)) {
                    echo ' hide';
@@ -240,40 +244,39 @@
                     <td class="discount-total"></td>
                 </tr>
                 <tr id="special_discount_area">
-  <td>
-    <div class="row">
-      <div class="col-md-7">
-        <span class="bold tw-text-neutral-700"><?php echo _l('special_discount'); ?></span>
-      </div>
-      <div class="col-md-5">
-        <select id="special_discount_percent" name="special_discount_percent" class="form-control">
-          <?php for ($i = 0; $i <= 5; $i++): ?>
-            <option value="<?= $i; ?>"><?= $i; ?>%</option>
-          <?php endfor; ?>
-        </select>
-      </div>
-    </div>
-  </td>
-  <td class="discount-total"></td>
-</tr>
-
-<tr id="offer_discount_area">
-  <td>
-    <div class="row">
-      <div class="col-md-7">
-        <span class="bold tw-text-neutral-700"><?php echo _l('offer_discount'); ?></span>
-      </div>
-      <div class="col-md-5">
-        <select id="offer_discount_percent" name="offer_discount_percent" class="form-control">
-          <?php for ($i = 0; $i <= 5; $i++): ?>
-            <option value="<?= $i; ?>"><?= $i; ?>%</option>
-          <?php endfor; ?>
-        </select>
-      </div>
-    </div>
-  </td>
-  <td class="discount-total"></td>
-</tr>
+                    <td>
+                        <div class="row">
+                        <div class="col-md-7">
+                            <span class="bold tw-text-neutral-700"><?php echo _l('special_discount'); ?></span>
+                        </div>
+                        <div class="col-md-5">
+                            <select id="special_discount_percent" name="special_discount_percent" class="form-control" onchange="calculate_total();">
+                            <?php for ($i = 0; $i <= 5; $i++): ?>
+                                <option value="<?= $i; ?>"><?= $i; ?>%</option>
+                            <?php endfor; ?>
+                            </select>
+                        </div>
+                        </div>
+                    </td>
+                    <td class="discount-total"></td>
+                </tr>
+                <tr id="offer_discount_area">
+                <td>
+                    <div class="row">
+                    <div class="col-md-7">
+                        <span class="bold tw-text-neutral-700"><?php echo _l('offer_discount'); ?></span>
+                    </div>
+                    <div class="col-md-5">
+                        <select id="offer_discount_percent" name="offer_discount_percent" class="form-control" onchange="calculate_total();">
+                        <?php for ($i = 0; $i <= 5; $i++): ?>
+                            <option value="<?= $i; ?>"><?= $i; ?>%</option>
+                        <?php endfor; ?>
+                        </select>
+                    </div>
+                    </div>
+                </td>
+                <td class="discount-total"></td>
+                </tr>
 
              <!--   <tr id="promo_code_area">
     <td colspan="2">
