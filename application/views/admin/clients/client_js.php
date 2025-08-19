@@ -275,40 +275,40 @@ function validate_contact_form() {
     appValidateForm('#contact-form', {
         firstname: 'required',
         lastname: 'required',
-        password: {
-            required: {
-                depends: function(element) {
+        // password: {
+        //     required: {
+        //         depends: function(element) {
 
-                    var $sentSetPassword = $('input[name="send_set_password_email"]');
+        //             var $sentSetPassword = $('input[name="send_set_password_email"]');
 
-                    if ($('#contact input[name="contactid"]').val() == '' && $sentSetPassword.prop(
-                            'checked') == false) {
-                        return true;
-                    }
-                }
-            }
-        },
-        email: {
-            <?php if (hooks()->apply_filters('contact_email_required', 'true') === 'true') { ?>
-            required: true,
-            <?php } ?>
-            email: true,
-            // Use this hook only if the contacts are not logging into the customers area and you are not using support tickets piping.
-            <?php if (hooks()->apply_filters('contact_email_unique', 'true') === 'true') { ?>
-            remote: {
-                url: admin_url + "misc/contact_email_exists",
-                type: 'post',
-                data: {
-                    email: function() {
-                        return $('#contact input[name="email"]').val();
-                    },
-                    userid: function() {
-                        return $('body').find('input[name="contactid"]').val();
-                    }
-                }
-            }
-            <?php } ?>
-        }
+        //             if ($('#contact input[name="contactid"]').val() == '' && $sentSetPassword.prop(
+        //                     'checked') == false) {
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        // },
+        // email: {
+        //     <?php if (hooks()->apply_filters('contact_email_required', 'true') === 'true') { ?>
+        //     required: true,
+        //     <?php } ?>
+        //     email: true,
+        //     // Use this hook only if the contacts are not logging into the customers area and you are not using support tickets piping.
+        //     <?php if (hooks()->apply_filters('contact_email_unique', 'true') === 'true') { ?>
+        //     remote: {
+        //         url: admin_url + "misc/contact_email_exists",
+        //         type: 'post',
+        //         data: {
+        //             email: function() {
+        //                 return $('#contact input[name="email"]').val();
+        //             },
+        //             userid: function() {
+        //                 return $('body').find('input[name="contactid"]').val();
+        //             }
+        //         }
+        //     }
+        //     <?php } ?>
+        // }
     }, contactFormHandler);
 }
 

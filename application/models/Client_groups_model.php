@@ -45,37 +45,54 @@ class Client_groups_model extends App_Model
      * @param  string $id
      * @return mixed
      */
+    // public function get_groups($id = '')
+    // {
+    //     if (is_numeric($id)) {
+    //         $this->db->where('id', $id);
+
+    //         return $this->db->get(db_prefix().'customers_groups')->row();
+    //     }
+    //     $this->db->order_by('name', 'asc');
+
+    //     return $this->db->get(db_prefix().'customers_groups')->result_array();
+    // }
     public function get_groups($id = '')
-    {
-        if (is_numeric($id)) {
-            $this->db->where('id', $id);
+{
+    $this->db->select('id, name, default_discount, override_allowed');
 
-            return $this->db->get(db_prefix().'customers_groups')->row();
-        }
-        $this->db->order_by('name', 'asc');
-
-        return $this->db->get(db_prefix().'customers_groups')->result_array();
+    if (is_numeric($id)) {
+        $this->db->where('id', $id);
+        return $this->db->get(db_prefix() . 'customers_groups')->row();
     }
+
+    $this->db->order_by('name', 'asc');
+    return $this->db->get(db_prefix() . 'customers_groups')->result_array();
+}
+
 
     /**
      * Edit customer group
      * @param  array $data $_POST data
      * @return boolean
      */
-    public function edit($data)
-    {
-        $this->db->where('id', $data['id']);
-        $this->db->update(db_prefix().'customers_groups', [
-            'name' => $data['name'],
-        ]);
-        if ($this->db->affected_rows() > 0) {
-            log_activity('Customer Group Updated [ID:' . $data['id'] . ']');
+ public function edit($data)
+{
+    $this->db->where('id', $data['id']);
+    $this->db->update(db_prefix() . 'customers_groups', [
+        'name' => $data['name'],
+        'default_discount' => $data['default_discount'],
+        'default_profit_margin' => $data['default_profit_margin'],
+        'override_allowed' => isset($data['override_allowed']) ? 1 : 0,
+    ]);
 
-            return true;
-        }
-
-        return false;
+    if ($this->db->affected_rows() > 0) {
+        log_activity('Customer Group Updated [ID:' . $data['id'] . ']');
+        return true;
     }
+
+    return false;
+}
+
 
     /**
      * Delete customer group
