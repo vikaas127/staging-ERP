@@ -45,12 +45,19 @@
 			success: function(response) {
 				$('#reviseHistoryLoader').hide();
 
+				let version;
 				if (response.length > 0) {
 					let rows = '';
 					response.forEach(function(item) {
+						version	= item.prefix + item.number;
+
+						if (item.version != 0) {
+							version += ' (V-' + item.version + ')';
+						}
+
 						rows += `
 							<tr>
-								<td>${item.version_label ?? ''}</td>
+								<td>${version ?? ''}</td>
 								<td>${item.total ?? ''}</td>
 								<td>${item.total_tax ?? ''}</td>
 								<td>${item.customer ?? ''}</td>

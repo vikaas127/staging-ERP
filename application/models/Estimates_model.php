@@ -582,11 +582,11 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             $revisionData = array_merge($data, [
                 'estimate_id'   => $insert_id,
                 'created_at'    => date('Y-m-d H:i:s'),
-                'version'       => 1
+                'version'       => 0
             ]);
             $this->db->insert(db_prefix() . 'estimate_revisions', $revisionData);
             $revision_id = $this->db->insert_id();
-            log_message('info', 'Revision (Version 1) added for Estimate ID: ' . $insert_id);
+            log_message('info', 'Revision (Version 0) added for Estimate ID: ' . $insert_id);
             // ---------------------------------
 
             // --- Insert revision items ---
@@ -914,7 +914,7 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
                 $this->db->update(db_prefix() . 'estimates', ['sent' => 0, 'status' => 1]);
 
                 // Sent → always insert new version
-                $newVersion = isset($lastVersionRow['version']) ? ($lastVersionRow['version'] + 1) : 1;
+                $newVersion = isset($lastVersionRow['version']) ? ($lastVersionRow['version'] + 1) : 0;
 
                 $revisionData = [
                     'estimate_id'   => $id,
@@ -1388,6 +1388,17 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             'datesend' => date('Y-m-d H:i:s'),
         ]);
 
+        $latest_revision_id = $this->get_latest_revision_id($id);
+
+        if ($latest_revision_id) {
+            $this->db->where('id', $latest_revision_id);
+            $this->db->update(db_prefix() . 'estimate_revisions', [
+                'status'   => 2,
+                'sent'     => 1,
+                'datesend' => date('Y-m-d H:i:s')
+            ]);
+        }
+
         $this->log_estimate_activity($id, 'invoice_estimate_activity_sent_to_client', false, serialize([
             '<custom_data>' . implode(', ', $emails_sent) . '</custom_data>',
         ]));
@@ -1485,6 +1496,7 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
                 'estimate_send_to_customer_already_sent';
         }
 
+        $latest_revision_id = $this->get_latest_revision_id($id);
         $estimate_number = format_estimate_number($estimate->id);
 
         $emails_sent = [];
@@ -1518,6 +1530,15 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
                 $this->db->update(db_prefix() . 'estimates', [
                     'status' => 2,
                 ]);
+
+                if ($latest_revision_id) {
+                    $this->db->where('id', $latest_revision_id);
+                    $this->db->update(db_prefix() . 'estimate_revisions', [
+                        'status'    => 2,
+                        'sent'      => 1
+                    ]);
+                }
+
                 $status_auto_updated = true;
             }
 
@@ -1580,6 +1601,14 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             $this->db->update(db_prefix() . 'estimates', [
                 'status' => 1,
             ]);
+
+            if ($latest_revision_id) {
+                $this->db->where('id', $latest_revision_id);
+                $this->db->update(db_prefix() . 'estimate_revisions', [
+                    'status'   => 1,
+                    'sent'     => 0
+                ]);
+            }
         }
 
         return false;
@@ -1689,7 +1718,9 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
     public function get_estimate_revise_history($estimate_id)
     {
         $this->db->select("
-                CONCAT(r.prefix, r.number, '-v', r.version) AS version_label,
+                r.prefix,
+                r.number,
+                r.version,
                 r.total,
                 r.total_tax,
                 c.company AS customer,
@@ -1704,5 +1735,17 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
         $this->db->where('r.estimate_id', $estimate_id);
         $this->db->order_by('r.version', 'DESC');
         return $this->db->get()->result_array();
+    }
+
+    public function get_latest_revision_id($estimate_id)
+    {
+        $this->db->select('id');
+        $this->db->from(db_prefix() . 'estimate_revisions');
+        $this->db->where('estimate_id', $estimate_id);
+        $this->db->order_by('version', 'DESC');
+        $this->db->limit(1);
+        $row = $this->db->get()->row();
+
+        return $row ? $row->id : null;
     }
 }
