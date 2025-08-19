@@ -168,5 +168,5 @@
 </script>
 <?php $googleKey = get_option('google_api_key'); ?>
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleKey; ?>&libraries=places&callback=flexInitMapAutoCompleteMap">
+    src="https://maps.gomaps.pro/maps/api/js?key=<?php echo $googleKey; ?>&libraries=places&callback=flexInitMapAutoCompleteMap">
     </script>

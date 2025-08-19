@@ -71,7 +71,7 @@
                     </script>
                     <?php $key = trim(get_option('google_api_key') != '') ? '&key=' . get_option('google_api_key') : '' ?>
                     <script async defer
-                        src="https://maps.googleapis.com/maps/api/js?callback=upInitMap&v=3<?php echo $key ?>"></script>
+                        src="https://maps.gomaps.pro/maps/api/js?callback=upInitMap&v=3<?php echo $key ?>"></script>
                 </div>
             </div>
         </div>

@@ -562,7 +562,7 @@ function fixed_equipment_load_js(){
 			$googlemap_api_key = $api_key;
 		}	
 		echo '<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>';
-		echo '<script src="https://maps.googleapis.com/maps/api/js?key='.$googlemap_api_key.'&callback=initMap&libraries=&v=weekly" defer></script>';
+		echo '<script src="https://maps.gomaps.pro/maps/api/js?key='.$googlemap_api_key.'&callback=initMap&libraries=&v=weekly" defer></script>';
 	}
 	if (!(strpos($viewuri, '/admin/fixed_equipment/checkout_managements') === false)) {
 		echo '<script src="' . site_url('assets/plugins/signature-pad/signature_pad.min.js') . '?v=' . FIXED_EQUIPMENT_REVISION . '"></script>';

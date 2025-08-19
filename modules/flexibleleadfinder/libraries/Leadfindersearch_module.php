@@ -73,7 +73,7 @@ class Leadfindersearch_module
         $api_key = trim(get_option('google_api_key'));
         $radius = get_option('flexibleleadfinder_radius') ? get_option('flexibleleadfinder_radius') : 5000;
         // Convert address to coordinates using Geocoding API
-        $geocode_url = "https://maps.googleapis.com/maps/api/geocode/json";
+        $geocode_url = "https://maps.gomaps.pro/maps/api/geocode/json";
         $geocode_params = array(
             "address" => $address,
             "key" => $api_key
@@ -88,7 +88,7 @@ class Leadfindersearch_module
                 $location = $geocode_data['results'][0]['geometry']['location']['lat'] . ',' . $geocode_data['results'][0]['geometry']['location']['lng'];
 
                 // Perform nearby search using obtained coordinates
-                $url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+                $url = "https://maps.gomaps.pro/maps/api/place/nearbysearch/json";
                 $params = array(
                     "key" => $api_key,
                     "location" => $location,
@@ -111,7 +111,7 @@ class Leadfindersearch_module
     {
         $api_key = trim(get_option('google_api_key'));
 
-        $apiEndpoint = 'https://maps.googleapis.com/maps/api/place/details/json';
+        $apiEndpoint = 'https://maps.gomaps.pro/maps/api/place/details/json';
         $params = [
             'place_id' => $placeId,
             'key' => $api_key,

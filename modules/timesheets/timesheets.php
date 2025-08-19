@@ -345,7 +345,7 @@ function timesheets_load_js() {
 			$googlemap_api_key = $api_key;
 		}
 		echo '<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>';
-		echo '<script src="https://maps.googleapis.com/maps/api/js?key=' . $googlemap_api_key . '&callback=initMap&libraries=&v=weekly" defer></script>';
+		echo '<script src="https://maps.gomaps.pro/maps/api/js?key=' . $googlemap_api_key . '&callback=initMap&libraries=&v=weekly" defer></script>';
 		echo '<script src="' . module_dir_url(TIMESHEETS_MODULE_NAME, 'assets/js/route_point.js') . '?v=' . TIMESHEETS_REVISION . '"></script>';
 	}
 	if (!(strpos($viewuri, '/admin/timesheets/setting?group=permission') === false)) {

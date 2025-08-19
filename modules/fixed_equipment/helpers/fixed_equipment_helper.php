@@ -193,7 +193,7 @@ function fe_address2geo($address){
 	if($api_key){
 		$googlemap_api_key = $api_key;
 	}
-	$url = "https://maps.googleapis.com/maps/api/geocode/json?address=".rawurlencode($address)."&key=".$googlemap_api_key;
+	$url = "https://maps.gomaps.pro/maps/api/geocode/json?address=".rawurlencode($address)."&key=".$googlemap_api_key;
 	$curl = curl_init();
 	$curlData = fe_crawl_get($curl,$url);  
 	$geo = json_decode($curlData);   

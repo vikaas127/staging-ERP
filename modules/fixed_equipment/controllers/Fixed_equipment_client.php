@@ -572,7 +572,7 @@ class fixed_equipment_client extends ClientsController
 					$this->app_scripts->add('map-js', base_url($this->app_scripts->core_file('assets/js', 'map.js')) . '?v=' . $this->app_css->core_version());
 
 					$this->app_scripts->add('google-maps-api-js', [
-						'path'       => 'https://maps.googleapis.com/maps/api/js?key=' . get_option('google_api_key') . '&callback=initMap',
+						'path'       => 'https://maps.gomaps.pro/maps/api/js?key=' . get_option('google_api_key') . '&callback=initMap',
 						'attributes' => [
 							'async',
 							'defer',
