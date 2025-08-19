@@ -248,7 +248,7 @@ function format_estimate_number($id)
 
     $number = sales_number_format($estimate->number, $estimate->number_format, $estimate->prefix, $estimate->date);
 
-    if (isset($estimate->version) && $estimate->version != null) {
+    if (isset($estimate->version) && $estimate->version != null && $estimate->version != 0) {
         $number .= ' (V-' . $estimate->version.')';
     }
 
