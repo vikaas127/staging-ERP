@@ -848,14 +848,15 @@ function add_new_sales_item_post($item, $rel_id, $rel_type)
 
     // Prepare insert data
     $insert_data = [
-        'description'      => $item['description'],
-        'long_description' => nl2br($item['long_description']),
-        'qty'              => $item['qty'],
-        'rate'             => number_format($item['rate'], get_decimal_places(), '.', ''),
-        'rel_id'           => $rel_id,
-        'rel_type'         => $rel_type,
-        'item_order'       => $item['order'],
-        'unit'             => $item['unit'],
+        'description'           => $item['description'],
+        'long_description'      => nl2br($item['long_description']),
+        'qty'                   => $item['qty'],
+        'rate'                  => number_format($item['rate'], get_decimal_places(), '.', ''),
+        'rel_id'                => $rel_id,
+        'rel_type'              => $rel_type,
+        'item_order'            => $item['order'],
+        'unit'                  => $item['unit'],
+        'item_discount_percent' => $item['item_discount_percent']
     ];
 
     // Include item_id if provided

@@ -200,10 +200,10 @@ class Invoice_items extends AdminController
     }
 
     /* Get item by id / ajax */
-    public function get_item_by_id($id)
+    public function get_item_by_id($id, $customer_group_id = null)
     {
         if ($this->input->is_ajax_request()) {
-            $item                     = $this->invoice_items_model->get($id);
+            $item                     = $this->invoice_items_model->get($id, $customer_group_id);
            $item = (object) $item;
 $item->long_description = nl2br($item->long_description);
             $item->custom_fields_html = render_custom_fields('items', $id, [], ['items_pr' => true]);

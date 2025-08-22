@@ -75,7 +75,7 @@ class Invoice_items_model extends App_Model
      * @param  mixed $id
      * @return mixed - array if not passed id, object if id passed
      */
-   public function get($id = '')
+   public function get($id = '', $customer_group_id = null)
     {
         $columns             = $this->db->list_fields(db_prefix() . 'items');
         $rateCurrencyColumns = '';
@@ -84,14 +84,30 @@ class Invoice_items_model extends App_Model
                 $rateCurrencyColumns .= $column . ',';
             }
         }
-        $this->db->select($rateCurrencyColumns . '' . db_prefix() . 'items.id as itemid,rate,
-            t1.taxrate as taxrate,t1.id as taxid,t1.name as taxname,
-            t2.taxrate as taxrate_2,t2.id as taxid_2,t2.name as taxname_2,
-            description,long_description,group_id,' . db_prefix() . 'items_groups.name as group_name,unit');
+
+        $this->db->select(
+        $rateCurrencyColumns
+        . db_prefix() . 'items.id as itemid,'
+        . 'rate,'
+        . 't1.taxrate as taxrate,t1.id as taxid,t1.name as taxname,'
+        . 't2.taxrate as taxrate_2,t2.id as taxid_2,t2.name as taxname_2,'
+        . 'description,long_description, items.group_id,'
+        . db_prefix() . 'items_groups.name as group_name,unit'
+        . ($customer_group_id ? ', item_group_discounts.discount as item_discount' : ', NULL as item_discount')
+        , false);
+
         $this->db->from(db_prefix() . 'items');
-        $this->db->join('' . db_prefix() . 'taxes t1', 't1.id = ' . db_prefix() . 'items.tax', 'left');
-        $this->db->join('' . db_prefix() . 'taxes t2', 't2.id = ' . db_prefix() . 'items.tax2', 'left');
-        $this->db->join(db_prefix() . 'items_groups', '' . db_prefix() . 'items_groups.id = ' . db_prefix() . 'items.group_id', 'left');
+        $this->db->join(db_prefix() . 'taxes t1', 't1.id = ' . db_prefix() . 'items.tax', 'left');
+        $this->db->join(db_prefix() . 'taxes t2', 't2.id = ' . db_prefix() . 'items.tax2', 'left');
+        $this->db->join(db_prefix() . 'items_groups', db_prefix() . 'items_groups.id = ' . db_prefix() . 'items.group_id', 'left');
+
+        if ($customer_group_id) {
+            $this->db->join(db_prefix() . 'item_group_discounts', 
+                'item_group_discounts.item_id = ' . db_prefix() . 'items.id AND item_group_discounts.group_id = ' . (int)$customer_group_id,
+                'left'
+            );
+        }
+
         $this->db->order_by('description', 'asc');
         if (is_numeric($id)) {
             $this->db->where(db_prefix() . 'items.id', $id);

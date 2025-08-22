@@ -67,17 +67,23 @@ jQuery(function($) {
                     $('#customer_group_discount').text(data.default_discount + '%');
                     globalCustomerGroupDiscount = parseFloat(data.default_discount) || 0;
                     $('#basic_discount_percent').val(globalCustomerGroupDiscount).trigger('input');
+                    $('#customer_group_id').val(data.group_id);
                 },
                 error: function() {
                     $('#customer_group_name').text('—');
                     $('#customer_group_discount').text('0%');
                     globalCustomerGroupDiscount = 0;
+                    $('#customer_group_id').val(null);
                 }
             });
         } else {
             $('#customer_group_name').text('—');
             $('#customer_group_discount').text('0%');
             globalCustomerGroupDiscount = 0;
+            $('#basic_discount_percent').val(0).trigger('input');
+            $('#customer_group_id').val(null);
+
+            calculate_total();
         }
     });
 

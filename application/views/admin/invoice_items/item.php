@@ -147,10 +147,12 @@ function manage_invoice_items(form) {
 function init_item_js() {
      // Add item to preview from the dropdown for invoices estimates
     $("body").on('change', 'select[name="item_select"]', function () {
-        var itemid = $(this).selectpicker('val');
+        var itemid  = $(this).selectpicker('val');
+        var groupId = $('#customer_group_id').val() || null;
+
         if (itemid != '') {
             console.log("Selected Item ID:", itemid);
-            add_item_to_preview(itemid);
+            add_item_to_preview(itemid, groupId);
         }
     });
 

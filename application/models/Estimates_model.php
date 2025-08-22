@@ -572,13 +572,16 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
                 log_message('info', 'New data Es'. print_r($data, true));
                 log_message('info', 'New Es'. print_r($items, true));
 
+        if (isset($data['item_discount_percent'])) {
+            unset($data['item_discount_percent']);
+        }
                 $this->db->insert(db_prefix() . 'estimates', $data);
                 $insert_id = $this->db->insert_id();
         log_message('info', ' before Estimate created successfully with ID: ' . $insert_id);
         if ($insert_id) {
            log_message('info', 'Estimate created successfully with ID: ' . $insert_id);
 
-            // --- Add revision (Version 1) ---
+            // --- Add revision (Version 0) ---
             $revisionData = array_merge($data, [
                 'estimate_id'   => $insert_id,
                 'created_at'    => date('Y-m-d H:i:s'),
@@ -593,13 +596,14 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
             if (!empty($items)) {
                 foreach ($items as $key => $item) {
                     $revisionItem = [
-                        'revision_id'   => $revision_id,
-                        'description'   => $item['description'],
-                        'long_description' => isset($item['long_description']) ? $item['long_description'] : '',
-                        'qty'           => $item['qty'],
-                        'rate'          => $item['rate'],
-                        'unit'          => isset($item['unit']) ? $item['unit'] : '',
-                        'item_order'    => $key
+                        'revision_id'           => $revision_id,
+                        'description'           => $item['description'],
+                        'long_description'      => isset($item['long_description']) ? $item['long_description'] : '',
+                        'qty'                   => $item['qty'],
+                        'rate'                  => $item['rate'],
+                        'unit'                  => isset($item['unit']) ? $item['unit'] : '',
+                        'item_discount_percent' => $item['item_discount_percent'],
+                        'item_order'            => $key
                     ];
                     $this->db->insert(db_prefix() . 'estimate_revision_items', $revisionItem);
                     $revision_item_id = $this->db->insert_id();
@@ -772,6 +776,10 @@ function apply_discounts($rel_type, $rel_id, $subtotal)
         }
 
         unset($data['removed_items']);
+
+        if (isset($data['item_discount_percent'])) {
+            unset($data['item_discount_percent']);
+        }
 
         $this->db->where('id', $id);
         $this->db->update(db_prefix() . 'estimates', $data);
